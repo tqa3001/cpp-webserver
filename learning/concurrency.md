@@ -27,14 +27,34 @@ semaphore. Bruh C++ has no semaphores.
 ### Strong memory model
 - With **sequential consistency**:
   + Instructions are executed in source code order \\
-    e.g thread(f() {a; b}) => a first then b 
+    e.g thread(f() {a; b;}) => a first then b 
   + Exists a global order for all executions on all threads.
-  ALL operations on threads obey a universal clock?
-- 
+    (e.g. thread1(f() {a; b;}), thread2(g() {c; d;}) => thread2 "sees" thread1's order of operations as a then b. => 6 possible orders) (metaphor: operations on threads obey a universal clock)
+
+### Weak memory model
+- With **relaxed semantic**:
+  + No synchronization and ordering constraints, but program should still have well-defined behavior (no race conditions).
+  + Above example: more than 6 are possible.
+  + `std::memory_order_relaxed`
+- With *acquire-release semantic*:
+  + Relaxed semantic then how to ensure no race conditions? This is one way.
+  + Threads are synchronized at specific synchronization points
+
+### Atomic flag `std::atomic_flag`
+- `clear()`: set value to `false`
+- `test_and_set()`: an instruction used to write (set) 1 to a memory location and return its old value as a single atomic (i.e., non-interruptible) operation. 
+- Is the building block for higher level thread abstraction
+- Is lock-free: A non-blocking algorithm is lock-free if there is guaranteed system-wide progress. \\
+In fact, it's the only lock-free atomic, other atomics implement a `is_lock_free()` to check if it holds a `mutex`.
+
+### Spinlock vs mutex
+- busy waiting (spinlock) vs passive waiting (mutex)
+- from the building block `std::atomic_flag` we gets `std::atomic`: atomics that have more complex interfaces but don't guarantee being lock-free.
+- C++ `std::atomic<bool>`: can be set directly to `true`|`false`.
+- C++ `std::atomic` (thread-safe I/O) is NOT `volatile` (I/O not optimized for special objects, like keyboard input) - two different things!
 
 ## Critical section
-- Some body of code that can be executed by multiple threads and exposes resoruces that can be
-access by all of these threads.
+- Some body of code that can be executed by multiple threads and exposes resoruces that can be access by all of these threads.
 
 ## Data races
 - Reading and writing a shared mutable variable at the same time is a data race, and therefore, undefined behavior. 
